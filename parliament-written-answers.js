@@ -5,15 +5,13 @@ const FS = require('fs')
 const CSVWriter = require('csv-write-stream')
 
 const http = Highland.wrapCallback((location, callback) => {
-    const wrapper = location => {
-        return callbackInner => {
-            Request.defaults({ timeout: 30 * 1000 })(location, (error, response) => {
-                const failure = error ? error : (response.statusCode >= 400) ? new Error(response.statusCode) : null
-                callbackInner(failure, response)
-            })
-        }
+    const input = output => {
+        Request.defaults({ timeout: 30 * 1000 })(location, (error, response) => {
+            const failure = error ? error : (response.statusCode >= 400) ? new Error(response.statusCode) : null
+            output(failure, response)
+        })
     }
-    RetryMe(wrapper(location), { factor: 1.5 }, callback)
+    RetryMe(input, { factor: 1.5 }, callback)
 })
 
 const location = 'http://lda.data.parliament.uk/answeredquestions.json'
